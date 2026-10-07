@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist Diário</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f7d5b">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--tx:#1d2733;--mut:#6b7785;--ac:#2f7d5b;--ac2:#e3f3ec;--bd:#e1e6eb;--dg:#c0392b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12181e;--card:#1c242c;--tx:#e8edf1;--mut:#93a0ad;--ac:#4cc08f;--ac2:#1d3a2f;--bd:#2a343e;--dg:#ff7b6b}}
+:root[data-theme="dark"]{--bg:#12181e;--card:#1c242c;--tx:#e8edf1;--mut:#93a0ad;--ac:#4cc08f;--ac2:#1d3a2f;--bd:#2a343e;--dg:#ff7b6b}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:0}
+.date{color:var(--mut);text-transform:capitalize;margin:2px 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.prog{display:flex;justify-content:space-between;font-size:.9rem;color:var(--mut)}
+.add{display:flex;gap:8px;margin:16px 0}
+.add input{flex:1;min-width:0;padding:12px;font-size:1rem;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+.add button{background:var(--ac);color:#fff;padding:0 18px;font-weight:600}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+li.done{background:var(--ac2)}
+li.done span{text-decoration:line-through;color:var(--mut)}
+li input{width:24px;height:24px;accent-color:var(--ac);flex:none}
+li span{flex:1;word-break:break-word;font-size:1.05rem}
+li button{background:none;color:var(--dg);font-size:1.3rem;padding:4px 8px}
+.empty{text-align:center;color:var(--mut);padding:24px}
+.foot{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.foot button{background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:10px 14px;font-size:.9rem}
+.hist{display:flex;gap:6px;margin-top:16px;justify-content:space-between}
+.hist div{flex:1;text-align:center;font-size:.75rem;color:var(--mut)}
+.hist b{display:block;height:36px;border-radius:6px;background:var(--bd);margin-bottom:4px;position:relative;overflow:hidden}
+.hist b i{position:absolute;bottom:0;left:0;right:0;background:var(--ac)}
+.foot .pri{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+#msg{min-height:1.2em;margin-top:10px;font-size:.9rem;color:var(--ac)}
+#msg a{color:var(--ac);font-weight:600}
+.busca{margin-top:20px}
+.busca .add{margin:10px 0 0}
+.res{margin-top:12px}
+.res h3{margin:0 0 4px;font-size:1rem;text-transform:capitalize}
+.res small{color:var(--mut);display:block;margin-bottom:8px}
+.res p{margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.res p.ok{color:var(--ac)}
+.res p.no{color:var(--mut)}
+[hidden]{display:none!important}
+.newt{margin:16px 0}.newt .add{margin:0}
+.frow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.frow select,.frow input[type=date]{padding:10px;font-size:1rem;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);flex:1;min-width:150px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chips label{display:flex;align-items:center;gap:4px;padding:8px 10px;border:1px solid var(--bd);border-radius:20px;font-size:.9rem;cursor:pointer}
+.chips label:has(input:checked){background:var(--ac2);border-color:var(--ac)}
+li span small{display:block;color:var(--mut);font-size:.75rem;margin-top:2px}
+details.todas{margin-top:16px}summary{cursor:pointer;font-weight:600}
+details ul{margin-top:10px}
+li button.ed{color:var(--mut);font-size:1.1rem}
+.add button#cancel{background:var(--card);color:var(--tx);border:1px solid var(--bd);font-weight:400}
+.bkbox{margin-top:12px}.bkbox textarea{width:100%;min-height:110px;padding:10px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:.8rem monospace}
+.bkbox button{margin-top:8px;background:var(--card);color:var(--tx);border:1px solid var(--bd);padding:10px 14px}
+.calh{display:flex;justify-content:space-between;align-items:center;margin:10px 0}
+.calh span{font-weight:600;text-transform:capitalize}
+.calh button{background:var(--bg);color:var(--tx);border:1px solid var(--bd);width:40px;height:36px;font-size:1.2rem}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal div{text-align:center;font-size:.72rem;color:var(--mut)}
+.cal button{aspect-ratio:1;border:1px solid transparent;background:var(--bg);color:var(--tx);border-radius:10px;position:relative;font-size:.95rem;padding:0}
+.cal button.t{border-color:var(--ac)}
+.cal button.s{background:var(--ac);color:#fff}
+.cal button i{position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--ac)}
+.cal button.s i{background:#fff}
+.item{display:flex;align-items:center;gap:6px;margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.item span{flex:1;word-break:break-word}
+.item small{margin:2px 0 0!important}
+.item button{background:none;color:var(--dg);font-size:1.1rem;padding:4px 6px}
+.item button.ed{color:var(--mut)}
+.calbtn{width:100%;margin-top:14px;padding:12px;background:var(--card);color:var(--tx);border:1px solid var(--bd);font-weight:600}
+.calhd{display:flex;justify-content:space-between;align-items:center}
+.calhd button{background:var(--bg);color:var(--mut);border:1px solid var(--bd);padding:6px 12px;font-size:.85rem}
+.busca{margin-top:12px!important}
+.hist div.hj{color:var(--tx);font-weight:700}
+.alerta{border:2px solid var(--dg);background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+.alerta b{color:var(--dg);display:block;margin-bottom:6px}
+.alerta div{font-size:.95rem;margin:3px 0}
+li.late{border:2px solid var(--dg)}
+li.late span small{color:var(--dg);font-weight:600}
+.frow label{font-size:.9rem;color:var(--mut)}
+.frow input[type=time]{padding:10px;font-size:1rem;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);min-width:130px;flex:0 1 auto}
+.dica{text-align:center;color:var(--mut);font-size:.8rem;margin-top:8px}
+li{flex-wrap:wrap}
+#agform button{flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--bd);padding:10px 14px;font-size:.95rem}
+li.sel{outline:2px solid var(--ac)}
+li button.mvb{color:var(--ac);display:flex;align-items:center;padding:6px 8px}
+.mov button{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.mov button svg{width:20px;height:20px}
+.mov{width:100%;display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
+.mov button{background:var(--bg);color:var(--tx);border:1px solid var(--bd);padding:8px 14px;font-size:.9rem}
+.mov button:disabled{opacity:.35;cursor:default}
+.logo{display:flex;align-items:center;gap:10px}
+</style>
+</head>
+<body>
+<main>
+  <h1 class="logo"><svg width="38" height="38" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#2f7d5b"/><polyline points="28,54 44,70 73,34" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg>Checklist Diário</h1>
+  <div class="date" id="date"></div>
+  <div class="alerta" id="alerta" hidden></div>
+  <div class="card">
+    <div class="prog"><span id="count">0 de 0</span><span id="pct">0%</span></div>
+    <div class="bar"><i id="fill"></i></div>
+  </div>
+  <button id="abrcal" class="calbtn">📅 Pesquisar por data</button>
+  <div class="card busca" id="calcard" hidden>
+    <div class="calhd"><b>📅 Pesquisar por data</b><button id="fechar">Fechar</button></div>
+    <div class="calh"><button id="pm" aria-label="Mês anterior">‹</button><span id="calt"></span><button id="nm" aria-label="Próximo mês">›</button></div>
+    <div class="cal" id="cal"></div>
+    <div class="res" id="res"></div>
+  </div>
+  <div class="card newt">
+    <div class="add">
+      <input id="novo" placeholder="Nova tarefa…" maxlength="120" autocomplete="off">
+      <button id="btn">Adicionar</button>
+      <button id="cancel" hidden>Cancelar</button>
+    </div>
+    <div class="frow">
+      <select id="freq">
+        <option value="daily">Repetir todos os dias</option>
+        <option value="week">Repetir em dias da semana</option>
+        <option value="once">Em uma data específica</option>
+      </select>
+      <input type="date" id="dt" hidden>
+    </div>
+    <div class="frow" id="agform" hidden><button id="agbtn">📆 Adicionar à Google Agenda</button></div>
+    <div class="frow"><label for="hr">Horário limite (opcional):</label><input type="time" id="hr"></div>
+    <div class="chips" id="wk" hidden>
+      <label><input type="checkbox" value="1">Seg</label><label><input type="checkbox" value="2">Ter</label><label><input type="checkbox" value="3">Qua</label><label><input type="checkbox" value="4">Qui</label><label><input type="checkbox" value="5">Sex</label><label><input type="checkbox" value="6">Sáb</label><label><input type="checkbox" value="0">Dom</label>
+    </div>
+  </div>
+  <ul id="list"></ul>
+  <div class="dica" id="dica" hidden>Toque no botão de setas ao lado de uma tarefa para mudar a ordem.</div>
+  <details class="card todas"><summary>📋 Todas as tarefas programadas</summary><ul id="todas"></ul></details>
+  <div class="hist" id="hist"></div>
+  <div class="foot">
+    <button id="salvar" class="pri">💾 Salvar dia</button>
+    <button id="reset">Desmarcar tudo</button>
+    <button id="tema">Tema claro/escuro</button>
+    <button id="exp">⬇️ Exportar backup</button>
+    <button id="imp">⬆️ Importar backup</button>
+    <input type="file" id="arq" accept=".json,application/json" hidden>
+  </div>
+  <div class="bkbox" id="bkbox" hidden>
+    <small>Copie o texto abaixo para guardar o backup, ou cole aqui um backup para importar.</small>
+    <textarea id="bk" spellcheck="false"></textarea>
+    <button id="bkimp">Importar texto colado</button>
+  </div>
+  <div id="msg"></div>
+</main>
+<script>
+const KEY='checklist-diario-v1';
+let S={tasks:[],done:{},history:{},lastDay:null,theme:null};
+function load(){try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+let hoje=ymd(new Date());
+const $=id=>document.getElementById(id);
+const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function aparece(t,dia){
+  const f=t.freq||'daily';
+  if(f==='daily')return true;
+  if(f==='once')return t.date===dia;
+  return (t.days||[]).includes(new Date(dia+'T12:00:00').getDay());
+}
+function agendaUrl(t,dia){
+  const f=t.freq||'daily',p2=n=>String(n).padStart(2,'0'),cod=['SU','MO','TU','WE','TH','FR','SA'];
+  let d=dia;
+  if(f==='once'&&t.date)d=t.date;
+  else if(!d||!aparece(t,d)){
+    d=hoje;
+    for(let i=0;i<8;i++){const x=new Date();x.setDate(x.getDate()+i);const k=ymd(x);if(aparece(t,k)){d=k;break}}
+  }
+  const c=d.replace(/-/g,'');let dates;
+  if(t.hora){
+    const hm=t.hora.split(':').map(Number),tot=Math.min(hm[0]*60+hm[1]+30,1439);
+    dates=c+'T'+p2(hm[0])+p2(hm[1])+'00/'+c+'T'+p2(Math.floor(tot/60))+p2(tot%60)+'00';
+  }else{
+    const n=new Date(d+'T12:00:00');n.setDate(n.getDate()+1);
+    dates=c+'/'+ymd(n).replace(/-/g,'');
+  }
+  let rec='';
+  if(f==='daily')rec='RRULE:FREQ=DAILY';
+  else if(f==='week'&&(t.days||[]).length)rec='RRULE:FREQ=WEEKLY;BYDAY='+t.days.map(i=>cod[i]).join(',');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(t.text)+'&dates='+dates+(rec?'&recur='+encodeURIComponent(rec):'')+'&details='+encodeURIComponent('Criado pelo Checklist Diário'+(t.hora?' - prazo '+t.hora:''));
+}
+function agenda(t,dia){
+  const u=agendaUrl(t,dia),w=window.open(u,'_blank');
+  if(w){try{w.opener=null}catch(e){}msg('Abrindo a Google Agenda. Confira e toque em Salvar.');return}
+  const m=$('msg');clearTimeout(msgT);m.innerHTML='';
+  const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Toque aqui para abrir a Google Agenda';
+  m.appendChild(a);
+}
+const SV=d=>'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg>';
+const IUP=SV('<path d="M12 20V5M5.5 11.5L12 5l6.5 6.5"/>'),IDN=SV('<path d="M12 4v15M5.5 12.5L12 19l6.5-6.5"/>'),
+IUD=SV('<path d="M7 20V5M2.5 9.5L7 5l4.5 4.5"/><path d="M17 4v15M12.5 14.5L17 19l4.5-4.5"/>');
+function mvBtn(t){
+  const b=document.createElement('button');b.innerHTML=IUD;b.className='ed mvb';
+  b.setAttribute('aria-label','Mudar a ordem');b.title='Mudar a ordem';
+  b.onclick=()=>{selT=selT===t.id?null:t.id;render()};return b;
+}
+function rotulo(t){return rotBase(t)+(t.hora?' · até '+t.hora:'')}
+function rotBase(t){
+  const f=t.freq||'daily';
+  if(f==='daily')return 'Todos os dias';
+  if(f==='once'){const [y,m,d]=(t.date||'').split('-');return 'Somente em '+d+'/'+m+'/'+y}
+  const ds=(t.days||[]).slice().sort((a,b)=>((a+6)%7)-((b+6)%7));
+  return ds.length===7?'Todos os dias':ds.map(i=>DIAS[i]).join(', ');
+}
+function excluir(t){if(confirm('Excluir "'+t.text+'"? Ela deixará de aparecer nos próximos dias (os registros salvos continuam).')){S.tasks=S.tasks.filter(y=>y.id!==t.id);if(editId===t.id)limparForm();save();render()}}
+function todas(){
+  const u=$('todas');u.innerHTML='';
+  if(!S.tasks.length){u.innerHTML='<div class="empty">Nada programado.</div>';return}
+  S.tasks.forEach(t=>{
+    const li=document.createElement('li'),sp=document.createElement('span'),g=document.createElement('small');
+    sp.textContent=t.text;g.textContent=rotulo(t);sp.appendChild(g);
+    const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','Excluir');x.onclick=()=>excluir(t);
+    const e=document.createElement('button');e.textContent='✏️';e.className='ed';e.setAttribute('aria-label','Editar');e.onclick=()=>editar(t);
+    li.append(sp,e,x);u.appendChild(li);
+  });
+}
+function backupJson(){return JSON.stringify({app:'checklist-diario',versao:1,exportadoEm:new Date().toISOString(),tasks:S.tasks,done:S.done,history:S.history},null,1)}
+async function exportar(){
+  const txt=backupJson();
+  let dl=null;try{dl=await claude.use('downloads')}catch(e){}
+  if(!dl){
+    try{const bl=new Blob([txt],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='checklist-backup-'+ymd(new Date())+'.json';document.body.appendChild(a);a.click();a.remove();msg('Backup exportado.');return}catch(e){}
+    $('bk').value=txt;$('bkbox').hidden=false;msg('Download indisponível aqui. Copie o texto abaixo.');return}
+  try{await dl.save({filename:'checklist-backup-'+ymd(new Date())+'.json',data:txt});msg('Backup exportado.')}
+  catch(e){if(e&&e.code==='declined')msg('Exportação cancelada.');else{$('bk').value=txt;$('bkbox').hidden=false;msg('Não foi possível baixar. Copie o texto abaixo.')}}
+}
+function importar(txt){
+  let d;try{d=JSON.parse(txt)}catch(e){msg('Arquivo inválido.');return}
+  if(!d||!Array.isArray(d.tasks)){msg('Arquivo inválido.');return}
+  const ids=new Set(S.tasks.map(t=>t.id)),re=/^\d{4}-\d{2}-\d{2}$/;let nt=0;
+  d.tasks.forEach(t=>{
+    if(!t||typeof t.id!=='string'||typeof t.text!=='string'||ids.has(t.id))return;
+    const f=['daily','week','once'].includes(t.freq)?t.freq:'daily';
+    S.tasks.push({id:t.id,text:t.text.slice(0,120),freq:f,days:Array.isArray(t.days)?t.days.map(Number).filter(n=>n>=0&&n<=6):[],date:typeof t.date==='string'?t.date:'',hora:/^\d{2}:\d{2}$/.test(t.hora)?t.hora:''});
+    ids.add(t.id);nt++;
+  });
+  Object.entries(d.done||{}).forEach(([k,a])=>{
+    if(!re.test(k)||!Array.isArray(a))return;
+    const c=S.done[k]||(S.done[k]=[]);
+    a.forEach(x=>{if(typeof x==='string'&&!c.includes(x))c.push(x)});
+  });
+  Object.entries(d.history||{}).forEach(([k,h])=>{
+    if(!re.test(k)||!h||!Array.isArray(h.items))return;
+    const o=S.history[k];
+    if(!o||(+h.savedAt||0)>o.savedAt)S.history[k]={items:h.items.filter(i=>i&&typeof i.text==='string').map(i=>({text:i.text.slice(0,120),done:!!i.done})),savedAt:+h.savedAt||Date.now(),auto:!!h.auto};
+  });
+  save();render();buscar();msg('Backup importado: '+nt+' tarefa(s) nova(s) adicionada(s).');
+}
+let selDia=null,calY=0,calM=0,lastKey='',selT=null;
+function mover(id,dir){
+  const L=S.tasks.filter(t=>aparece(t,hoje)),i=L.findIndex(t=>t.id===id),j=i+dir;
+  if(i<0||j<0||j>=L.length)return;
+  const a=S.tasks.indexOf(L[i]),b=S.tasks.indexOf(L[j]);
+  [S.tasks[a],S.tasks[b]]=[S.tasks[b],S.tasks[a]];
+  save();render();
+}
+function agora(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function atrasadas(){const d=doneToday();return S.tasks.filter(t=>aparece(t,hoje)&&t.hora&&!d.includes(t.id)&&agora()>t.hora)}
+function lateKey(){return atrasadas().map(t=>t.id).join(',')}
+function alerta(){
+  const L=atrasadas(),a=$('alerta');lastKey=L.map(t=>t.id).join(',');
+  document.title=(L.length?'('+L.length+') ':'')+'Checklist Diário';
+  if(!L.length){a.hidden=true;a.innerHTML='';return}
+  a.hidden=false;a.innerHTML='';
+  const b=document.createElement('b');b.textContent='⚠️ '+L.length+(L.length>1?' tarefas fora do prazo':' tarefa fora do prazo');a.appendChild(b);
+  L.sort((x,y)=>x.hora<y.hora?-1:1).forEach(t=>{const e=document.createElement('div');e.textContent='• '+t.text+' (prazo '+t.hora+')';a.appendChild(e)});
+}
+function fmtDia(v){return new Date(v+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function addDia(v,txt){
+  txt=txt.trim();if(!txt)return;
+  S.tasks.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:txt.slice(0,120),freq:'once',days:[],date:v});
+  if($('nd'))$('nd').value='';
+  save();render();msg('Tarefa adicionada em '+v.split('-').reverse().join('/')+'.');
+}
+function cal(){
+  const first=new Date(calY,calM,1),n=new Date(calY,calM+1,0).getDate(),g=$('cal');
+  $('calt').textContent=first.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  g.innerHTML='';
+  DIAS.forEach(d=>{const e=document.createElement('div');e.textContent=d;g.appendChild(e)});
+  for(let i=0;i<first.getDay();i++)g.appendChild(document.createElement('div'));
+  for(let d=1;d<=n;d++){
+    const k=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),b=document.createElement('button');
+    b.textContent=d;
+    if(k===hoje)b.classList.add('t');
+    if(k===selDia)b.classList.add('s');
+    const marca=k<hoje?!!S.history[k]:S.tasks.some(t=>(t.freq||'daily')!=='daily'&&aparece(t,k));
+    if(marca)b.appendChild(document.createElement('i'));
+    b.onclick=()=>{selDia=k;buscar()};
+    g.appendChild(b);
+  }
+}
+function buscar(){
+  cal();
+  const r=$('res'),v=selDia;
+  if(!v){r.innerHTML='';return}
+  const keep=$('nd')?$('nd').value:'';
+  r.innerHTML='';
+  const h3=document.createElement('h3'),sm=document.createElement('small');
+  h3.textContent=fmtDia(v);r.append(h3,sm);
+  if(v<hoje){
+    const h=S.history[v];
+    if(!h){sm.textContent='Dia anterior';r.insertAdjacentHTML('beforeend','<p class="no">Nenhum registro salvo nesta data.</p>');return}
+    const c=h.items.filter(i=>i.done).length,n=h.items.length,p=n?Math.round(c/n*100):0;
+    sm.textContent=c+' de '+n+' ('+p+'%) · salvo '+(h.auto?'automaticamente':'manualmente')+' em '+new Date(h.savedAt).toLocaleString('pt-BR');
+    if(!n)r.insertAdjacentHTML('beforeend','<p class="no">Sem tarefas neste dia.</p>');
+    h.items.forEach(i=>{const e=document.createElement('p');e.className=i.done?'ok':'no';e.textContent=(i.done?'✔ ':'☐ ')+i.text;r.appendChild(e)});
+    return;
+  }
+  const L=S.tasks.filter(t=>aparece(t,v)),a=v===hoje?doneToday():[];
+  sm.textContent=(v===hoje?'Hoje':'Programado')+' · '+L.length+' tarefa(s)';
+  if(!L.length)r.insertAdjacentHTML('beforeend','<p class="no">Nada programado para este dia.</p>');
+  L.forEach(t=>{
+    const row=document.createElement('div'),sp=document.createElement('span'),g=document.createElement('small');
+    row.className='item';
+    sp.textContent=(v===hoje?(a.includes(t.id)?'✔ ':'☐ '):'• ')+t.text;
+    g.textContent=rotulo(t);sp.appendChild(g);
+    const e=document.createElement('button');e.textContent='✏️';e.className='ed';e.setAttribute('aria-label','Editar');e.onclick=()=>editar(t);
+    const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','Excluir');x.onclick=()=>excluir(t);
+    row.append(sp,e,x);r.appendChild(row);
+  });
+  const f=document.createElement('div'),inp=document.createElement('input'),b=document.createElement('button');
+  f.className='add';f.style.margin='12px 0 0';
+  inp.id='nd';inp.placeholder='Nova tarefa para este dia…';inp.maxLength=120;inp.value=keep;
+  b.textContent='Adicionar';
+  b.onclick=()=>addDia(v,inp.value);
+  inp.onkeydown=e=>{if(e.key==='Enter')addDia(v,inp.value)};
+  f.append(inp,b);r.appendChild(f);
+}
+let editId=null;
+function amanha(){const a=new Date();a.setDate(a.getDate()+1);return ymd(a)}
+function limparForm(){
+  editId=null;$('novo').value='';$('btn').textContent='Adicionar';$('cancel').hidden=true;
+  document.querySelectorAll('#wk input').forEach(i=>i.checked=false);
+  $('freq').value='daily';$('freq').onchange();$('dt').value=amanha();$('hr').value='';$('agform').hidden=true;
+}
+function editar(t){
+  editId=t.id;$('novo').value=t.text;$('freq').value=t.freq||'daily';$('freq').onchange();
+  document.querySelectorAll('#wk input').forEach(i=>i.checked=(t.days||[]).includes(+i.value));
+  $('dt').value=t.date||amanha();$('hr').value=t.hora||'';$('agform').hidden=false;$('btn').textContent='Salvar';$('cancel').hidden=false;
+  $('novo').scrollIntoView({behavior:'smooth',block:'center'});$('novo').focus();
+  msg('Editando "'+t.text+'". Altere e toque em Salvar.');
+}
+let autoDone=null,msgT;
+function msg(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',4000)}
+function snap(dia,auto){
+  const a=S.done[dia]||[];
+  S.history[dia]={items:S.tasks.filter(t=>aparece(t,dia)).map(t=>({text:t.text,done:a.includes(t.id)})),savedAt:Date.now(),auto:!!auto};
+  save();
+}
+function doneToday(){return S.done[hoje]||(S.done[hoje]=[])}
+function render(){
+  $('date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const d=doneToday(),ul=$('list');ul.innerHTML='';
+  const L=S.tasks.filter(t=>aparece(t,hoje));
+  $('dica').hidden=L.length<2;
+  if(!L.length){ul.innerHTML='<div class="empty">'+(S.tasks.length?'Nenhuma tarefa programada para hoje.':'Nenhuma tarefa ainda. Adicione a primeira acima.')+'</div>'}
+  L.forEach(t=>{
+    const li=document.createElement('li'),ck=d.includes(t.id);
+    if(ck)li.className='done';else if(atrasadas().includes(t))li.className='late';
+    const i=document.createElement('input');i.type='checkbox';i.checked=ck;
+    i.onchange=()=>{const a=doneToday(),k=a.indexOf(t.id);k>=0?a.splice(k,1):a.push(t.id);save();render()};
+    const s=document.createElement('span');s.textContent=t.text;
+    if((t.freq||'daily')!=='daily'||t.hora){const g=document.createElement('small');g.textContent=rotulo(t);s.appendChild(g)}
+    const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','Excluir');
+    x.onclick=()=>excluir(t);
+    const e=document.createElement('button');e.textContent='✏️';e.className='ed';e.setAttribute('aria-label','Editar');e.onclick=()=>editar(t);
+    li.append(i,s,...(L.length>1?[mvBtn(t)]:[]),e,x);
+    if(selT===t.id&&L.length>1){
+      li.classList.add('sel');
+      const mv=document.createElement('div'),i0=L.indexOf(t),up=document.createElement('button'),dn=document.createElement('button');
+      mv.className='mov';up.innerHTML=IUP+'<span>Subir</span>';dn.innerHTML=IDN+'<span>Descer</span>';
+      up.disabled=i0===0;dn.disabled=i0===L.length-1;
+      up.onclick=()=>mover(t.id,-1);dn.onclick=()=>mover(t.id,1);
+      mv.append(up,dn);li.appendChild(mv);
+    }
+    ul.appendChild(li);
+  });
+  const n=L.length,c=L.filter(t=>d.includes(t.id)).length,p=n?Math.round(c/n*100):0;
+  $('count').textContent=c+' de '+n+' concluídas';$('pct').textContent=p+'%';$('fill').style.width=p+'%';
+  hist();todas();buscar();alerta();
+}
+function hist(){
+  const h=$('hist');h.innerHTML='';
+  const base=new Date();base.setDate(base.getDate()-base.getDay());
+  for(let k=0;k<7;k++){
+    const dt=new Date(base);dt.setDate(base.getDate()+k);
+    const a=S.done[ymd(dt)]||[],L=S.tasks.filter(t=>aparece(t,ymd(dt))),c=L.filter(t=>a.includes(t.id)).length,p=L.length?c/L.length*100:0;
+    const el=document.createElement('div');
+    if(ymd(dt)===hoje)el.className='hj';
+    el.innerHTML='<b><i style="height:'+p+'%"></i></b>'+dt.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','');
+    h.appendChild(el);
+  }
+}
+function add(){
+  const v=$('novo').value.trim();if(!v)return;
+  const f=$('freq').value,hr=$('hr').value,t={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:v,freq:f};
+  if(f==='week'){
+    t.days=[...document.querySelectorAll('#wk input:checked')].map(i=>+i.value);
+    if(!t.days.length){msg('Escolha pelo menos um dia da semana.');return}
+  }
+  if(f==='once'){
+    t.date=$('dt').value;
+    if(!t.date){msg('Escolha a data da tarefa.');return}
+  }
+  if(hr)t.hora=hr;
+  const k=editId?S.tasks.findIndex(y=>y.id===editId):-1;
+  if(k>=0){t.id=editId;S.tasks[k]=t}else S.tasks.push(t);
+  save();render();limparForm();
+  msg(k>=0?'Tarefa atualizada: '+rotulo(t)+'.':aparece(t,hoje)?'Tarefa adicionada para hoje ('+rotulo(t)+').':'Tarefa agendada: '+rotulo(t)+'.');
+}
+$('btn').onclick=add;
+$('novo').addEventListener('keydown',e=>{if(e.key==='Enter')add()});
+$('reset').onclick=()=>{if(confirm('Desmarcar todas as tarefas de hoje?')){S.done[hoje]=[];save();render()}};
+$('tema').onclick=()=>{const dark=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#12181e';S.theme=dark?'light':'dark';document.documentElement.dataset.theme=S.theme;save()};
+function checkDay(){
+  const d=new Date(),n=ymd(d);
+  if(n!==hoje){snap(hoje,true);hoje=n;S.lastDay=n;save();render();buscar();return}
+  if(lateKey()!==lastKey)render();
+  if(d.getHours()===23&&d.getMinutes()>=59&&autoDone!==hoje){snap(hoje,true);autoDone=hoje}
+}
+$('salvar').onclick=()=>{snap(hoje,false);msg('Dia salvo às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'.');buscar()};
+$('freq').onchange=()=>{$('wk').hidden=$('freq').value!=='week';$('dt').hidden=$('freq').value!=='once'};
+$('cancel').onclick=()=>{limparForm();msg('Edição cancelada.')};
+$('agbtn').onclick=()=>{
+  const f=$('freq').value,t={id:'tmp',text:$('novo').value.trim(),freq:f,days:[...document.querySelectorAll('#wk input:checked')].map(i=>+i.value),date:$('dt').value,hora:$('hr').value};
+  if(!t.text){msg('Digite o nome da tarefa.');return}
+  if(f==='week'&&!t.days.length){msg('Escolha pelo menos um dia da semana.');return}
+  if(f==='once'&&!t.date){msg('Escolha a data da tarefa.');return}
+  agenda(t,hoje);
+};
+$('exp').onclick=exportar;
+$('imp').onclick=()=>$('arq').click();
+$('arq').onchange=()=>{const f=$('arq').files[0];if(!f)return;const r=new FileReader();r.onload=()=>importar(String(r.result));r.onerror=()=>msg('Não foi possível ler o arquivo.');r.readAsText(f);$('arq').value=''};
+$('bkimp').onclick=()=>{if($('bk').value.trim())importar($('bk').value)};
+function abrirCal(abrir){
+  $('calcard').hidden=!abrir;
+  $('abrcal').textContent=abrir?'📅 Ocultar calendário':'📅 Pesquisar por data';
+  if(abrir){selDia=selDia||hoje;buscar();$('calcard').scrollIntoView({behavior:'smooth',block:'nearest'})}
+}
+$('abrcal').onclick=()=>abrirCal($('calcard').hidden);
+$('fechar').onclick=()=>abrirCal(false);
+$('pm').onclick=()=>{calM--;if(calM<0){calM=11;calY--}cal()};
+$('nm').onclick=()=>{calM++;if(calM>11){calM=0;calY++}cal()};
+document.addEventListener('visibilitychange',checkDay);setInterval(checkDay,30000);
+load();
+if(S.lastDay&&S.lastDay<hoje&&S.tasks.length)snap(S.lastDay,true);
+S.lastDay=hoje;save();
+calY=new Date().getFullYear();calM=new Date().getMonth();selDia=hoje;
+{const a=new Date();a.setDate(a.getDate()+1);$('dt').value=ymd(a);$('dt').min=hoje}
+if(S.theme)document.documentElement.dataset.theme=S.theme;render();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
